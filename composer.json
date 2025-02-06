@@ -1,0 +1,54 @@
+{
+    "name": "amos-o-7/laravel-mpesa",
+    "description": "A Laravel package for M-Pesa C2B (Customer to Business) integration",
+    "keywords": ["laravel", "mpesa", "safaricom", "payment", "c2b", "kenya"],
+    "version": "1.0.0",
+    "type": "library",
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0",
+        "illuminate/http": "^10.0",
+        "guzzlehttp/guzzle": "^7.9",
+        "psr/log": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "mockery/mockery": "^1.6",
+        "orchestra/testbench": "^8.0",
+        "guzzlehttp/psr7": "^2.6"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Mpesa\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Mpesa\\Providers\\MpesaServiceProvider"
+            ]
+        }
+    },
+    "authors": [
+        {
+            "name": "Amos O",
+            "email": "amosondari7@gmail.com",
+            "role": "Software Engineer"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    }
+}

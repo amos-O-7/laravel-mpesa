@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         testdox="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+    <coverage>
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
+        <exclude>
+            <directory>./src/config</directory>
+            <directory>./src/routes</directory>
+        </exclude>
+    </coverage>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="MPESA_BASE_URL" value="https://sandbox.safaricom.co.ke"/>
+        <env name="MPESA_CONSUMER_KEY" value="test_consumer_key"/>
+        <env name="MPESA_CONSUMER_SECRET" value="test_consumer_secret"/>
+        <env name="MPESA_SHORTCODE" value="123456"/>
+        <env name="MPESA_VALIDATION_URL" value="https://example.com/api/mpesa/c2b/validation"/>
+        <env name="MPESA_CONFIRMATION_URL" value="https://example.com/api/mpesa/c2b/confirmation"/>
+        <env name="MPESA_RESPONSE_TYPE" value="Completed"/>
+    </php>
+</phpunit>
