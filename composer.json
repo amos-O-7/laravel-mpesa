@@ -2,7 +2,7 @@
     "name": "amos-o-7/laravel-mpesa",
     "description": "A Laravel package for M-Pesa C2B (Customer to Business) integration",
     "keywords": ["laravel", "mpesa", "safaricom", "payment", "c2b", "kenya"],
-    "version": "1.0.0",
+    "version": "0.1.0",
     "type": "library",
     "require": {
         "php": "^8.1",
@@ -42,7 +42,7 @@
             "role": "Software Engineer"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
         "sort-packages": true
