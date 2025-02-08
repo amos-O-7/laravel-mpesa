@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Mpesa\DataTransferObjects\C2BTransactionData;
 use Mpesa\Exceptions\MpesaException;
 use Mpesa\Traits\HasMpesaResponses;
+use Mpesa\Services\AuthenticationService;
 
 class C2BService
 {
@@ -16,6 +17,7 @@ class C2BService
 
     protected $client;
     protected $config;
+    protected $authService;
 
     public function __construct(Client $client = null)
     {
@@ -25,6 +27,7 @@ class C2BService
             'timeout' => 30,
             'verify' => false
         ]);
+        $this->authService = new AuthenticationService($this->config);
     }
 
     /**
@@ -36,40 +39,10 @@ class C2BService
     public function generateToken(): string
     {
         try {
-            // Get credentials
-            $key = $this->config['consumer_key'];
-            $secret = $this->config['consumer_secret'];
-
-            if (!$key || !$secret) {
-                throw new MpesaException("Missing consumer key or secret in config");
-            }
-
-            // Create Basic Auth credentials
-            $credentials = base64_encode($key . ':' . $secret);
-
-            // Make request exactly as documented
-            $response = $this->client->get('/oauth/v1/generate', [
-                'headers' => [
-                    'Authorization' => 'Basic ' . $credentials
-                ],
-                'query' => [
-                    'grant_type' => 'client_credentials'
-                ]
-            ]);
-
-            $result = json_decode($response->getBody()->getContents());
-            
-            if (!isset($result->access_token)) {
-                throw new MpesaException('Invalid response from M-Pesa API');
-            }
-
-            return $result->access_token;
-        } catch (\Exception $e) {
-            Log::error('M-Pesa Access Token Generation Failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw new MpesaException('Failed to get access token: ' . $e->getMessage());
+            $response = $this->authService->getAccessToken();
+            return $response->access_token;
+        } catch (MpesaException $e) {
+            throw $e;
         }
     }
 

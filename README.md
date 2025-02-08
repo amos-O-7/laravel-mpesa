@@ -1,6 +1,6 @@
 # Laravel M-Pesa Integration
 
-A Laravel package for M-Pesa integration, currently supporting C2B (Customer to Business) transactions.
+A Laravel package for M-Pesa C2B (Customer to Business) integration.
 
 ## Installation
 
@@ -12,60 +12,99 @@ composer require amos-o-7/laravel-mpesa
 
 ## Configuration
 
-1. Publish the config file:
+1. Publish the configuration file:
+
 ```bash
-php artisan vendor:publish --provider="Mpesa\Providers\MpesaServiceProvider"
+php artisan vendor:publish --provider="Mpesa\Providers\MpesaServiceProvider" --tag="config"
 ```
 
 2. Add these variables to your `.env` file:
+
 ```env
 MPESA_BASE_URL=https://sandbox.safaricom.co.ke
 MPESA_CONSUMER_KEY=your_consumer_key
 MPESA_CONSUMER_SECRET=your_consumer_secret
 MPESA_SHORTCODE=your_shortcode
-MPESA_VALIDATION_URL=https://your-domain.com/api/mpesa/c2b/validation
-MPESA_CONFIRMATION_URL=https://your-domain.com/api/mpesa/c2b/confirmation
-MPESA_RESPONSE_TYPE=Completed
+MPESA_VALIDATION_URL=https://your-domain.com/api/mpesa/validate
+MPESA_CONFIRMATION_URL=https://your-domain.com/api/mpesa/confirm
 ```
 
 ## Usage
 
-### Getting Access Token
+### Basic Usage
 
 ```php
 use Mpesa\Services\C2BService;
 
-public function getToken(C2BService $c2bService)
+class PaymentController extends Controller
 {
-    $token = $c2bService->generateToken();
-    return response()->json(['access_token' => $token]);
+    protected $mpesa;
+
+    public function __construct(C2BService $mpesa)
+    {
+        $this->mpesa = $mpesa;
+    }
+
+    // Register URLs (only needs to be done once)
+    public function registerUrls()
+    {
+        try {
+            $response = $this->mpesa->registerUrls();
+            return response()->json($response);
+        } catch (MpesaException $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Simulate a C2B payment (sandbox only)
+    public function simulatePayment()
+    {
+        try {
+            $response = $this->mpesa->simulateTransaction([
+                'Amount' => 100,
+                'BillRefNumber' => 'INV001',
+                'PhoneNumber' => '254727343690'
+            ]);
+            return response()->json($response);
+        } catch (MpesaException $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }
 ```
 
-### Registering URLs
+### Handling Callbacks
 
 ```php
-use Mpesa\Services\C2BService;
-
-public function register(C2BService $c2bService)
+// Validation callback
+public function validation(Request $request)
 {
-    $result = $c2bService->registerUrls();
-    return response()->json($result);
+    Log::info('M-Pesa Validation', $request->all());
+    return response()->json([
+        'ResultCode' => 0,
+        'ResultDesc' => 'Accepted'
+    ]);
+}
+
+// Confirmation callback
+public function confirmation(Request $request)
+{
+    Log::info('M-Pesa Confirmation', $request->all());
+    return response()->json([
+        'ResultCode' => 0,
+        'ResultDesc' => 'Success'
+    ]);
 }
 ```
 
-### Handling C2B Transactions
+## Features
 
-The package automatically sets up these endpoints:
-- Validation: `/api/mpesa/c2b/validation`
-- Confirmation: `/api/mpesa/c2b/confirmation`
-
-## Available Routes
-
-- `GET /api/mpesa/c2b/token` - Generate access token
-- `POST /api/mpesa/c2b/register` - Register validation and confirmation URLs
-- `POST /api/mpesa/c2b/validation` - Handle validation callbacks
-- `POST /api/mpesa/c2b/confirmation` - Handle confirmation callbacks
+- Token Generation
+- URL Registration
+- C2B Payment Simulation (Sandbox)
+- Validation & Confirmation Handling
+- Error Handling
+- Automatic Token Management
 
 ## Testing
 
@@ -75,7 +114,7 @@ composer test
 
 ## Security
 
-If you discover any security related issues, please email amosondari7@gmail.com instead of using the issue tracker.
+If you discover any security-related issues, please email amosondari7@gmail.com instead of using the issue tracker.
 
 ## Credits
 

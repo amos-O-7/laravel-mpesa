@@ -60,9 +60,70 @@ class MpesaTest
             ];
         }
     }
+
+    public function registerC2BUrls()
+    {
+        try {
+            $token = $this->getToken();
+            $access_token = $token->access_token;
+
+            $response = $this->client->post('/mpesa/c2b/v1/registerurl', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $access_token,
+                    'Content-Type' => 'application/json'
+                ],
+                'json' => [
+                    'ShortCode' => '600987',  // Use your shortcode here
+                    'ResponseType' => 'Completed',
+                    'ConfirmationURL' => 'https://example.com/confirmation',
+                    'ValidationURL' => 'https://example.com/validation'
+                ]
+            ]);
+
+            return json_decode($response->getBody());
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
+
+    public function simulateC2BPayment()
+    {
+        try {
+            $token = $this->getToken();
+            $access_token = $token->access_token;
+
+            $response = $this->client->post('/mpesa/c2b/v1/simulate', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $access_token,
+                    'Content-Type' => 'application/json'
+                ],
+                'json' => [
+                    'ShortCode' => '600987',  
+                    'CommandID' => 'CustomerPayBillOnline',
+                    'Amount' => '100',
+                    'Msisdn' => '254727343690',  
+                    'BillRefNumber' => 'TEST123'
+                ]
+            ]);
+
+            return json_decode($response->getBody());
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
 }
 
-// Run the test
+// Run the tests
 $mpesa = new MpesaTest();
-$result = $mpesa->getToken();
-echo json_encode($result, JSON_PRETTY_PRINT) . "\n";
+
+echo "Getting Token:\n";
+$token = $mpesa->getToken();
+echo json_encode($token, JSON_PRETTY_PRINT) . "\n\n";
+
+echo "Registering C2B URLs:\n";
+$urls = $mpesa->registerC2BUrls();
+echo json_encode($urls, JSON_PRETTY_PRINT) . "\n\n";
+
+echo "Simulating C2B Payment:\n";
+$payment = $mpesa->simulateC2BPayment();
+echo json_encode($payment, JSON_PRETTY_PRINT) . "\n";
