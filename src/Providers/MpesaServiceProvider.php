@@ -9,7 +9,7 @@ class MpesaServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/mpesa.php', 'mpesa');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/mpesa.php', 'mpesa');
 
         $this->app->singleton(C2BService::class, function ($app) {
             // Validate configuration before creating service
@@ -22,7 +22,7 @@ class MpesaServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/mpesa.php' => $this->app->configPath('mpesa.php'),
+                __DIR__ . '/../../config/mpesa.php' => $this->app->configPath('mpesa.php'),
             ], 'config');
         }
 
