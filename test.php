@@ -13,14 +13,17 @@ class MpesaTest
     {
         $this->config = [
             'base_url' => 'https://sandbox.safaricom.co.ke',
-            'consumer_key' => 'VXOTcbLJC0dOeKPSpH2uwhj5BYIN007M9YujSLiEc45WyToZ',
-            'consumer_secret' => 'hwnvt0l1etIGFKGMUkHR2NQb6ewHy0O3tsGuX13wqzNABpuyR3MLvzyFeA9PfjVT'
+            'consumer_key' => '31rGZ4SymgLEH7O8T0waqW4jiYACF9LGkIYjZIbxV9YfyECZ',
+            'consumer_secret' => 'Tlx65J6TjRWJWiMkt98VJsquH4obqPz0rFeJDrFjoPNZy5Zd9YiyTcSKKOAlv5AJ',
+            'shortcode' => '174379',
+            'passkey' => 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919',
+            'callback_url' => 'https://example.com/callback'
         ];
 
         $this->client = new Client([
             'base_uri' => $this->config['base_url'],
-            'timeout' => 30,
-            'verify' => false
+            'verify' => false,
+            'timeout' => 60,
         ]);
     }
 
@@ -86,6 +89,16 @@ class MpesaTest
         }
     }
 
+    /**
+     * Simulates a C2B (Customer to Business) payment transaction in the M-Pesa sandbox environment.
+     *
+     * This method sends a request to the M-Pesa API to simulate a payment transaction,
+     * using predefined values for ShortCode, CommandID, Amount, Msisdn, and BillRefNumber.
+     * It requires a valid access token, which is retrieved using the getToken() method.
+     *
+     * @return mixed Returns the response from the M-Pesa API if successful, or an error message
+     *               if the request fails.
+     */
     public function simulateC2BPayment()
     {
         try {
@@ -111,6 +124,57 @@ class MpesaTest
             return ['error' => $e->getMessage()];
         }
     }
+
+    public function testSTKPush()
+    {
+        try {
+            // First get the access token
+            $token = $this->getToken();
+            
+            // Generate password
+            $timestamp = date('YmdHis');
+            $password = base64_encode($this->config['shortcode'] . $this->config['passkey'] . $timestamp);
+
+            // Prepare STK Push request data
+            $data = [
+                'BusinessShortCode' => $this->config['shortcode'],
+                'Password' => $password,
+                'Timestamp' => $timestamp,
+                'TransactionType' => 'CustomerPayBillOnline',
+                'Amount' => 1,
+                'PartyA' => '254727343690', // Replace with your phone number
+                'PartyB' => $this->config['shortcode'],
+                'PhoneNumber' => '254727343690', // Replace with your phone number
+                'CallBackURL' => $this->config['callback_url'],
+                'AccountReference' => 'Test Account',
+                'TransactionDesc' => 'Test Payment'
+            ];
+
+            // Make the STK Push request
+            $response = $this->client->post('/mpesa/stkpush/v1/processrequest', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $token->access_token,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $data
+            ]);
+
+            $result = json_decode($response->getBody()->getContents(), true);
+            echo "STK Push Response:\n";
+            print_r($result);
+            return $result;
+
+        } catch (\Exception $e) {
+            echo "Error: " . $e->getMessage() . "\n";
+            if (method_exists($e, 'getResponse')) {
+                $response = $e->getResponse();
+                if ($response) {
+                    echo "Response Body: " . $response->getBody()->getContents() . "\n";
+                }
+            }
+            return null;
+        }
+    }
 }
 
 // Run the tests
@@ -118,12 +182,7 @@ $mpesa = new MpesaTest();
 
 echo "Getting Token:\n";
 $token = $mpesa->getToken();
-echo json_encode($token, JSON_PRETTY_PRINT) . "\n\n";
+print_r($token);
 
-echo "Registering C2B URLs:\n";
-$urls = $mpesa->registerC2BUrls();
-echo json_encode($urls, JSON_PRETTY_PRINT) . "\n\n";
-
-echo "Simulating C2B Payment:\n";
-$payment = $mpesa->simulateC2BPayment();
-echo json_encode($payment, JSON_PRETTY_PRINT) . "\n";
+echo "\nTesting STK Push:\n";
+$mpesa->testSTKPush();
