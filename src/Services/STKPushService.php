@@ -68,7 +68,7 @@ class STKPushService
         string $phoneNumber,
         string $accountReference,
         string $transactionDesc,
-        string $callbackUrl = null
+        ?string $callbackUrl = null
     ) {
         $timestamp = Carbon::now()->format('YmdHis');
         $shortcode = $this->config['shortcode'];
